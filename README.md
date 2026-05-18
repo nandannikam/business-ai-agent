@@ -321,10 +321,14 @@ psql -U admin -d test_db -c "\dt"
 | `LOKI_URL` | Agent | Loki API URL | `http://loki:3100` |
 | `AGENT_API_URL` | Dashboard, Web | Flask agent base URL | `http://localhost:5000` |
 | `VITE_GOOGLE_CLIENT_ID` | Landing Page | Google OAuth Client ID | — |
+| `MY_WHATSAPP_NUMBER` | WhatsApp Gateway | E.164 WhatsApp number without `+` | — |
+| `WHATSAPP_VERIFY_TOKEN` | Agent | Meta webhook verification token | — |
+| `WHATSAPP_ACCESS_TOKEN` | Agent | Meta WhatsApp API access token | — |
+| `WHATSAPP_PHONE_NUMBER_ID` | Agent | Meta WhatsApp phone number ID | — |
 | `SECRET_KEY` | Web Flask | Session secret key | `super-secret-key-change-me` |
 | `API_KEY` | Agent auth | Simple API key | `secret-token` |
 
-> ⚠️ **Never commit `.env` files to git.** They are already in `.gitignore`.
+Copy `.env.example` to `.env`, fill private values locally, and never commit real `.env` files.
 
 ---
 

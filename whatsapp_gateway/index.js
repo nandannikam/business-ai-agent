@@ -6,11 +6,11 @@ const qrcode = require('qrcode-terminal');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const BACKEND_URL = (process.env.BACKEND_URL || 'http://backend:5000').replace(/\/$/, '');
-const MY_NUMBER   = (process.env.MY_WHATSAPP_NUMBER || '917976127452'); // E.164 without '+'
+const MY_NUMBER   = process.env.MY_WHATSAPP_NUMBER || ''; // E.164 without '+'
 const PROCESS_URL = `${BACKEND_URL}/api/v1/whatsapp-personal/process`;
 
 console.log(`[gateway] Backend  : ${BACKEND_URL}`);
-console.log(`[gateway] My number: ${MY_NUMBER}`);
+console.log(`[gateway] My number: ${MY_NUMBER || 'not configured'}`);
 
 // ── WhatsApp client ───────────────────────────────────────────────────────────
 const client = new Client({

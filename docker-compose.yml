@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
     environment:
       - BACKEND_URL=http://backend:5000
-      - MY_WHATSAPP_NUMBER=917976127452
+      - MY_WHATSAPP_NUMBER=${MY_WHATSAPP_NUMBER:-}
     volumes:
       - wwebjs_auth:/app/.wwebjs_auth
     depends_on:
