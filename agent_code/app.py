@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import Any
 from flask import Flask, request, jsonify, Response, stream_with_context, g
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import psycopg2.extras
 import requests
@@ -44,6 +46,21 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
 app.config["SECRET_KEY"] = os.getenv("JWT_SECRET", "super-secret-business-key-2026")
 CORS(app)
 
+DEFAULT_RATE_LIMITS = [
+    limit.strip()
+    for limit in os.getenv("RATE_LIMIT_DEFAULT", "200 per day;50 per hour").split(";")
+    if limit.strip()
+]
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=DEFAULT_RATE_LIMITS,
+    headers_enabled=True,
+)
+AUTH_RATE_LIMIT = os.getenv("RATE_LIMIT_AUTH", "5 per minute")
+CHAT_RATE_LIMIT = os.getenv("RATE_LIMIT_CHAT", "10 per minute")
+IMPORT_RATE_LIMIT = os.getenv("RATE_LIMIT_IMPORT", "20 per hour")
+
 # --- Authentication Logic ---
 def token_required(f):
     @wraps(f)
@@ -65,6 +82,7 @@ def get_current_business_id():
     return getattr(g, "business_id", None)
 
 @app.route("/api/auth/signup", methods=["POST"])
+@limiter.limit(AUTH_RATE_LIMIT)
 def auth_signup():
     data = request.json
     email = data.get("email", "").lower().strip()
@@ -108,6 +126,7 @@ def auth_signup():
         conn.close()
 
 @app.route("/api/auth/login", methods=["POST"])
+@limiter.limit(AUTH_RATE_LIMIT)
 def auth_login():
     data = request.json
     email = data.get("email", "").lower().strip()
@@ -350,6 +369,7 @@ def telegram_webhook():
 # --- Transaction Import Endpoints ---
 
 @app.route("/api/v1/import/transactions", methods=["POST"])
+@limiter.limit(IMPORT_RATE_LIMIT)
 @token_required
 def import_transactions():
     if "file" not in request.files: return jsonify({"error": "No file part"}), 400
@@ -378,6 +398,7 @@ def import_transactions():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/v1/import/notebook", methods=["POST"])
+@limiter.limit(IMPORT_RATE_LIMIT)
 @token_required
 def import_notebook():
     if "file" not in request.files: return jsonify({"error": "No file part"}), 400
@@ -423,6 +444,7 @@ def import_notebook():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/v1/import/confirm-notebook", methods=["POST"])
+@limiter.limit(IMPORT_RATE_LIMIT)
 @token_required
 def confirm_notebook():
     data = request.json
@@ -453,6 +475,7 @@ def confirm_notebook():
 # --- AI Chat API ---
 
 @app.route("/api/chat/send", methods=["POST"])
+@limiter.limit(CHAT_RATE_LIMIT)
 @token_required
 def api_chat_send():
     data = request.json

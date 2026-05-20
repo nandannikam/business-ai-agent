@@ -322,6 +322,10 @@ psql -U admin -d test_db -c "\dt"
 | `PROMETHEUS_URL` | Agent | Prometheus API URL | `http://prometheus:9090` |
 | `LOKI_URL` | Agent | Loki API URL | `http://loki:3100` |
 | `AGENT_API_URL` | Dashboard, Web | Flask agent base URL | `http://localhost:5000` |
+| `RATE_LIMIT_DEFAULT` | Agent | Default Flask-Limiter quota for API clients | `200 per day;50 per hour` |
+| `RATE_LIMIT_AUTH` | Agent | Signup/login quota per client IP | `5 per minute` |
+| `RATE_LIMIT_CHAT` | Agent | Chat generation quota per client IP | `10 per minute` |
+| `RATE_LIMIT_IMPORT` | Agent | Transaction import quota per client IP | `20 per hour` |
 | `VITE_GOOGLE_CLIENT_ID` | Landing Page | Google OAuth Client ID | — |
 | `MY_WHATSAPP_NUMBER` | WhatsApp Gateway | E.164 WhatsApp number without `+` | — |
 | `WHATSAPP_VERIFY_TOKEN` | Agent | Meta webhook verification token | — |
