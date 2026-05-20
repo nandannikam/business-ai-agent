@@ -35,6 +35,7 @@ from langgraph.types import Command
 from logger.logger import logger
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST, REGISTRY
 from query_execution import stream_agent_sse_lines
+from auth import AuthError, decode_jwt_identity
 
 load_dotenv()
 
@@ -43,19 +44,25 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
 app.config["SECRET_KEY"] = os.getenv("JWT_SECRET", "super-secret-business-key-2026")
 CORS(app)
 
-# --- Authentication Logic (DISABLED for DEMO) ---
+# --- Authentication Logic ---
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        # Quick bypass for demo day
-        g.user_id = "demo_user"
-        g.business_id = "550e8400-e29b-41d4-a716-446655440000"
+        try:
+            identity = decode_jwt_identity(
+                request.headers.get("Authorization"),
+                app.config["SECRET_KEY"],
+            )
+        except AuthError as exc:
+            return jsonify({"message": exc.message}), exc.status_code
+
+        g.user_id = identity["user_id"]
+        g.business_id = identity["business_id"]
         return f(*args, **kwargs)
     return decorated
 
 def get_current_business_id():
-    # Force use of a FIXED demo business ID
-    return "550e8400-e29b-41d4-a716-446655440000"
+    return getattr(g, "business_id", None)
 
 @app.route("/api/auth/signup", methods=["POST"])
 def auth_signup():
